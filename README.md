@@ -1,8 +1,12 @@
 # vaultbridge
 
-A lightweight Python MCP server that gives Claude full read/write/search/list access to any Obsidian vault on your machine. Claude Desktop auto-starts it — no manual server startup needed.
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![MCP](https://img.shields.io/badge/MCP-compatible-purple)
 
-## Tools Exposed
+A lightweight Python MCP server that bridges Claude and Obsidian — giving Claude full read/write/search/list access to any Obsidian vault on your machine. Claude Desktop auto-starts it in the background, no manual server startup needed.
+
+## Tools
 
 | Tool | Description |
 |---|---|
@@ -13,87 +17,43 @@ A lightweight Python MCP server that gives Claude full read/write/search/list ac
 
 ---
 
-## Setup
-
-### 1. Clone the repo
+## Quick Setup
 
 ```bash
 git clone https://github.com/k41r0s3/vaultbridge.git ~/vaultbridge
-cd ~/obsidian-vault-mcp
-```
-
-### 2. Create the virtual environment & install dependencies
-
-```bash
+cd ~/vaultbridge
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-### 3. Register with Claude Desktop
-
-Edit `~/.config/Claude/claude_desktop_config.json` and add this inside the `"mcpServers"` block:
+Add to `~/.config/Claude/claude_desktop_config.json`:
 
 ```json
-"obsidian-vault-mcp": {
+"vaultbridge": {
   "command": "/home/YOUR_USER/vaultbridge/.venv/bin/python",
-  "args": [
-    "/home/YOUR_USER/obsidian-vault-mcp/server.py"
-  ],
+  "args": ["/home/YOUR_USER/vaultbridge/server.py"],
   "env": {
     "OBSIDIAN_BASE": "/home/YOUR_USER/path/to/your/Obsidian"
   }
 }
 ```
 
-Replace `YOUR_USER` and `OBSIDIAN_BASE` with your actual username and Obsidian vaults folder path.
-
-### 4. Restart Claude Desktop
-
-Close and reopen Claude Desktop. The server starts automatically — no manual startup needed. You should see `vaultbridge` in the connected tools.
+Restart Claude Desktop — done.
 
 ---
 
-## Usage
+## Documentation
 
-Once connected, just tell Claude naturally:
-
-**List all vaults:**
-> "List all my Obsidian vaults"
-
-**List notes in a vault:**
-> "List all notes in my Resume Builder vault"
-
-**Read a note:**
-> "Read the skills note from my Resume Builder vault"
-
-**Update a note:**
-> "Append this new project to my projects note in Resume Builder: ..."
-
-**Search:**
-> "Search for 'Burp Suite' across my Resume Builder vault"
-
-**Generate a tailored resume:**
-> "Read all the resume notes from my Resume Builder vault — here's a job description: [JD]. Generate a tailored resume."
-
----
-
-## Configuration
-
-| Env Variable | Description |
+| Doc | Description |
 |---|---|
-| `OBSIDIAN_BASE` | Path to the folder containing all your Obsidian vaults |
-
-The server auto-discovers any vault folder under `OBSIDIAN_BASE` — no config changes needed when you add new vaults.
+| [Getting Started](docs/01-getting-started.md) | Installation, setup, troubleshooting |
+| [Tools Reference](docs/02-tools-reference.md) | Full reference for all 4 tools |
+| [Configuration](docs/03-configuration.md) | Environment variables and config options |
+| [Use Cases](docs/04-use-cases.md) | Practical examples and workflows |
+| [Changelog](docs/05-changelog.md) | Version history |
 
 ---
 
-## Project Structure
+## License
 
-```
-obsidian-vault-mcp/
-├── .venv/            # isolated Python env (gitignored)
-├── .gitignore
-├── server.py         # MCP server
-├── requirements.txt  # pinned dependencies
-└── README.md
-```
+MIT — see [LICENSE](LICENSE) for details.
