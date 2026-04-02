@@ -3,8 +3,8 @@
 ## Prerequisites
 
 - Python 3.10+
-- [Claude Desktop](https://claude.ai/download) installed
-- [Obsidian](https://obsidian.md) installed with at least one vault
+- Claude Desktop installed
+- Obsidian installed with at least one vault
 
 ---
 
@@ -17,7 +17,7 @@ git clone https://github.com/k41r0s3/vaultbridge.git ~/vaultbridge
 cd ~/vaultbridge
 ```
 
-### 2. Create the virtual environment
+### 2. Create virtual environment
 
 ```bash
 python3 -m venv .venv
@@ -26,62 +26,90 @@ python3 -m venv .venv
 
 ### 3. Register with Claude Desktop
 
-Edit `~/.config/Claude/claude_desktop_config.json` and add this inside the `"mcpServers"` block:
+Config file location by OS:
+
+| OS | Path |
+|---|---|
+| Linux / Kali | `~/.config/Claude/claude_desktop_config.json` |
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+
+Add this inside the `"mcpServers"` block:
 
 ```json
 "vaultbridge": {
   "command": "/home/YOUR_USER/vaultbridge/.venv/bin/python",
   "args": ["/home/YOUR_USER/vaultbridge/server.py"],
   "env": {
-    "OBSIDIAN_BASE": "/home/YOUR_USER/path/to/your/Obsidian"
+    "OBSIDIAN_BASE": "/home/YOUR_USER/Desktop/Obsidian"
   }
 }
 ```
 
-Replace `YOUR_USER` with your username and `OBSIDIAN_BASE` with the path to the folder that contains all your Obsidian vaults.
+> macOS users: replace `/home/YOUR_USER` with `/Users/YOUR_USER`
 
 ### 4. Restart Claude Desktop
 
-Close and reopen Claude Desktop. Vaultbridge starts automatically in the background — no manual startup needed.
+Close fully (check system tray) and reopen. vaultbridge starts automatically in the background.
+
+### 5. Verify
+
+Say: *"List all my Obsidian vaults"* — Claude should respond with your vault names.
 
 ---
 
-## Verify it works
+## Updating
 
-Once Claude Desktop restarts, open a new chat and say:
+When a new version is released:
 
-> "List all my Obsidian vaults"
+```bash
+cd ~/vaultbridge
+git pull origin main
+```
 
-Claude should respond with the vaults found under your `OBSIDIAN_BASE` path. If it does — you're good to go.
+Then restart Claude Desktop. If the new version adds packages:
+
+```bash
+.venv/bin/pip install -r requirements.txt
+```
+
+Check your current version:
+```bash
+git log --oneline -1
+```
 
 ---
 
 ## Troubleshooting
 
 **Tools not showing up after restart**
-
-Check your config is valid JSON:
 ```bash
+# Check config is valid JSON
 cat ~/.config/Claude/claude_desktop_config.json | python3 -m json.tool
-```
 
-Check the venv python exists:
-```bash
+# Check venv python exists
 ls ~/vaultbridge/.venv/bin/python
-```
 
-Test the server runs without errors:
-```bash
+# Test server manually — should hang silently, Ctrl+C to exit
 ~/vaultbridge/.venv/bin/python ~/vaultbridge/server.py
-```
-It should hang silently. Press `Ctrl+C` to exit. If it throws an error, the dependency install failed — re-run:
-```bash
-rm -rf .venv
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+
+# Check Claude Desktop logs
+cat ~/.config/Claude/logs/main.log | grep -i "vaultbridge" | tail -20
 ```
 
-Check Claude Desktop logs for errors:
+**Venv broken after moving or renaming the folder**
+
+The venv stores absolute paths internally — recreate it:
 ```bash
-cat ~/.config/Claude/logs/main.log | grep -i "vaultbridge" | tail -20
+rm -rf ~/vaultbridge/.venv
+python3 -m venv ~/vaultbridge/.venv
+~/vaultbridge/.venv/bin/pip install -r ~/vaultbridge/requirements.txt
+```
+
+**Vault not found error**
+
+`OBSIDIAN_BASE` must point to the **parent folder** containing your vaults, not a vault itself:
+```
+✅ OBSIDIAN_BASE=/home/user/Desktop/Obsidian     ← contains vault folders
+❌ OBSIDIAN_BASE=/home/user/Desktop/Obsidian/My Vault  ← this IS a vault
 ```

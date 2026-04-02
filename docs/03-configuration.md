@@ -2,27 +2,39 @@
 
 ## Environment Variables
 
-Vaultbridge is configured entirely through environment variables set in `claude_desktop_config.json`.
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `OBSIDIAN_BASE` | Yes | — | Absolute path to the folder containing all your Obsidian vaults |
+| `VAULTBRIDGE_READONLY` | No | `0` | Set to `1`, `true`, or `yes` to disable all writes and deletes globally |
+| `VAULTBRIDGE_LOG` | No | `~/.vaultbridge.log` | Path to the audit log file |
+| `VAULTBRIDGE_REDACT_PATHS` | No | `1` | Set to `0` or `false` to show full filesystem paths in responses |
 
-| Variable | Required | Description |
-|---|---|---|
-| `OBSIDIAN_BASE` | Yes | Absolute path to the folder containing all your Obsidian vaults |
+---
 
-**Example structure:**
+## OBSIDIAN_BASE Structure
+
 ```
-/home/user/Obsidian/          ← this is OBSIDIAN_BASE
-├── Resume Builder/           ← vault 1
-├── Personal Notes/           ← vault 2
-└── Work Notes/               ← vault 3
+/home/user/Desktop/Obsidian/     ← OBSIDIAN_BASE
+├── Resume Builder/              ← vault (auto-discovered)
+├── Personal Notes/              ← vault (auto-discovered)
+└── Work Notes/                  ← vault (auto-discovered)
 ```
 
-With `OBSIDIAN_BASE=/home/user/Obsidian`, all three vaults are auto-discovered. No config changes needed when you add new vaults.
+Any new vault folder added here is automatically available — no config changes needed.
 
 ---
 
 ## Claude Desktop Config
 
-Full example `claude_desktop_config.json` with vaultbridge alongside other MCP servers:
+Config file location by OS:
+
+| OS | Path |
+|---|---|
+| Linux / Kali | `~/.config/Claude/claude_desktop_config.json` |
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+
+### Basic setup
 
 ```json
 {
@@ -31,29 +43,53 @@ Full example `claude_desktop_config.json` with vaultbridge alongside other MCP s
       "command": "/home/YOUR_USER/vaultbridge/.venv/bin/python",
       "args": ["/home/YOUR_USER/vaultbridge/server.py"],
       "env": {
-        "OBSIDIAN_BASE": "/home/YOUR_USER/Obsidian"
+        "OBSIDIAN_BASE": "/home/YOUR_USER/Desktop/Obsidian"
       }
     }
   }
 }
 ```
 
-Config file location by OS:
+### With all options
 
-| OS | Path |
-|---|---|
-| Linux | `~/.config/Claude/claude_desktop_config.json` |
-| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
-| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+```json
+{
+  "mcpServers": {
+    "vaultbridge": {
+      "command": "/home/YOUR_USER/vaultbridge/.venv/bin/python",
+      "args": ["/home/YOUR_USER/vaultbridge/server.py"],
+      "env": {
+        "OBSIDIAN_BASE": "/home/YOUR_USER/Desktop/Obsidian",
+        "VAULTBRIDGE_READONLY": "0",
+        "VAULTBRIDGE_LOG": "/home/YOUR_USER/.vaultbridge.log",
+        "VAULTBRIDGE_REDACT_PATHS": "1"
+      }
+    }
+  }
+}
+```
+
+> macOS users: replace `/home/YOUR_USER` with `/Users/YOUR_USER`
 
 ---
 
-## Multiple Vaults
+## Audit Log
 
-No extra config needed. As long as each vault is a subfolder under `OBSIDIAN_BASE`, vaultbridge finds it automatically.
+Every tool call is logged to `~/.vaultbridge.log` by default:
+
+```
+2026-03-27 02:13:45 | INFO | action=read vault=Resume Builder note=profile section=full
+2026-03-27 02:14:01 | INFO | action=write vault=Resume Builder note=experience mode=append
+2026-03-27 02:14:22 | INFO | action=delete vault=Resume Builder note=old-draft
+```
+
+View recent activity:
+```bash
+tail -20 ~/.vaultbridge.log
+```
 
 ---
 
-## Changing OBSIDIAN_BASE
+## Read-Only Mode
 
-If you move your Obsidian vaults folder, update `OBSIDIAN_BASE` in `claude_desktop_config.json` and restart Claude Desktop.
+Set `VAULTBRIDGE_READONLY=1` to allow Claude to read notes but never modify them. All write and delete operations are blocked at the server level.
